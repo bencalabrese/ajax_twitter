@@ -1,3 +1,5 @@
+var FollowToggle = require("./follow_toggle");
+
 function UsersSearch(el) {
   this.$el = $(el);
   this.$input = this.$el.find('input');
@@ -13,33 +15,37 @@ UsersSearch.prototype.handleInput = function (event) {
     method: 'GET',
     dataType: 'json',
     data: { query: this.$input.val() },
-    success: function(users) {
-      this.renderResults(users);
+    success: function(data) {
+      this.renderResults(data);
     }.bind(this)
   });
 };
 
 
-UsersSearch.prototype.renderResults = function (users) {
+UsersSearch.prototype.renderResults = function (data) {
   this.$ul.empty();
-  var self = this;
-  users.forEach(function(user) {
-    debugger
 
-    var $a = $("<a>" + user.username + "</a>");
-    $a.attr('href', user.id);
+  data.forEach(function(datum) {
+    this.renderUserLI(datum);
+  }.bind(this));
+};
 
-    var buttonOptions = { userId: user.id };
+UsersSearch.prototype.renderUserLI = function (datum) {
+  var user = datum.user;
+  var followState = datum.followed ? "followed" : "unfollowed";
 
+  var $a = $("<a>" + user.username + "</a>");
+  $a.attr('href', user.id);
 
-    var $button = $('<button></button>');
-    $button.addClass('follow-toggle');
+  var $button = $('<button>');
+  $button.addClass('follow-toggle');
 
-    var $li = $("<li></li>").append($a);
+  var buttonOptions = { userId: user.id, followState: followState };
+  new FollowToggle($button, buttonOptions);
 
+  var $li = $("<li>").append($a).append($button);
 
-    self.$ul.append($li);
-  });
+  this.$ul.append($li);
 };
 
 module.exports = UsersSearch;
